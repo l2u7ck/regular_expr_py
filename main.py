@@ -27,15 +27,23 @@ def separate_fio(fio_list):
 def normalisation_phone(phone):
 
     if phone != '':
-        symbols_to_remove = "-() "
-        for symbol in symbols_to_remove:
-            phone = phone.replace(symbol, "")
 
-        result = re.sub("^8", "+7", phone.lower())
-        res = re.sub("доб.", " доб.", result)
-        res = f"{res[:2]}({res[2:5]}){res[5:8]}-{res[8:10]}-{res[10:12]}{res[12:]}"
+        pattern = (r"(\+7|8)\s*((\(\d{3}\))|\d{3})(\s*|\-)(\d{3})[\s-]*(\d{2})[\s-]*(\d{2})"
+                   r"(\s*(\(|)(доб.)\s*\d{4}(\)|)|)")
+        check = re.match(pattern, phone)
 
-        return [res]
+        if check is not None:
+
+            t = re.sub(r"^8", '+7', phone)
+            t1 = re.sub(r" \(| ", '(', t, 1)
+            t2 = re.sub(r"\+7\d{3}", f'+7({t1[2:5]})', t1, 1)
+            t3 = re.sub(r"\)", ' ', t2)
+            t4 = re.sub(r"  | |-", ')', t3, 1)
+            t5 = re.sub(r"\)\d{4}", f'){t4[7:10]}-{t4[10]}', t4, 1)
+            t6 = re.sub(r"-\d{3}", f'-{t5[11:13]}-{t5[13]}', t5, 1)
+            res = re.sub(r" \(доб. | доб. ", f' доб.', t6, 1)
+
+            return [res.rstrip()]
     return ['']
 
 
